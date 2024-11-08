@@ -1,9 +1,15 @@
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
+# Internal imports based on your project structure
 from .routers import index as indexRoute
 from .models import model_loader
 from .dependencies.config import conf
+
+from .. import models, schemas
+from ..database import engine, get_db
 
 
 app = FastAPI()
