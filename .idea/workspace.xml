@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="51724f89-7ff3-40b2-8b3a-d871475fadf0" name="Changes" comment="feat: added database file to set up database connection with mySQL; Please replace username, password, and your_database_name with your actual MySQL credentials and database name.">
+      <change beforePath="$PROJECT_DIR$/ITSC3155-Assignments-main/Part1/api/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/ITSC3155-Assignments-main/Part1/api/main.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;seeshma-b&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/seeshma-b/Requirement-Analysis-User-Stories.git&quot;,
+    &quot;accountId&quot;: &quot;f2aaaf47-4c8a-4819-96ea-e2dca1becd9d&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2oaPvkosK8dTbQQ666DQc5QQuPT" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.main.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.build&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PY-242.23726.102" />
+        <option value="bundled-python-sdk-5e1850174b45-399fe30bd8c1-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.23726.102" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration">
+    <configuration>C:\Users\Seesh\AppData\Roaming\Subversion</configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="51724f89-7ff3-40b2-8b3a-d871475fadf0" name="Changes" comment="" />
+      <created>1731104946500</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1731104946500</updated>
+      <workItem from="1731104947246" duration="464000" />
+      <workItem from="1731105421029" duration="28000" />
+      <workItem from="1731105470499" duration="6350000" />
+      <workItem from="1731190880653" duration="1476000" />
+    </task>
+    <task id="LOCAL-00001" summary="feat: added database file to set up database connection with mySQL; Please replace username, password, and your_database_name with your actual MySQL credentials and database name.">
+      <option name="closed" value="true" />
+      <created>1731108664940</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1731108664940</updated>
+    </task>
+    <task id="LOCAL-00002" summary="feat: edit database configs">
+      <option name="closed" value="true" />
+      <created>1731108723664</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1731108723664</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat: Build API endpoints with FastAPI">
+      <option name="closed" value="true" />
+      <created>1731108884899</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1731108884899</updated>
+    </task>
+    <task id="LOCAL-00004" summary="feat: Define models in mySQL">
+      <option name="closed" value="true" />
+      <created>1731108914724</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1731108914724</updated>
+    </task>
+    <task id="LOCAL-00005" summary="feat: Create Pydantic Schemas for data validation">
+      <option name="closed" value="true" />
+      <created>1731108945775</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1731108945775</updated>
+    </task>
+    <task id="LOCAL-00006" summary="fix: imports and paths">
+      <option name="closed" value="true" />
+      <created>1731109064799</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1731109064799</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: added database file to set up database connection with mySQL; Please replace username, password, and your_database_name with your actual MySQL credentials and database name." />
+    <MESSAGE value="feat: edit database configs" />
+    <MESSAGE value="feat: Build API endpoints with FastAPI" />
+    <MESSAGE value="feat: Define models in mySQL" />
+    <MESSAGE value="feat: Create Pydantic Schemas for data validation" />
+    <MESSAGE value="fix: imports and paths" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: imports and paths" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Requirement_Analysis_User_Stories$main.coverage" NAME="main Coverage Results" MODIFIED="1731110651409" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ITSC3155-Assignments-main/Part1/api" />
+  </component>
+</project>
