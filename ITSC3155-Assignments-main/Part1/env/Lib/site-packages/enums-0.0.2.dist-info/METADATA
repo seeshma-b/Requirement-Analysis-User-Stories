@@ -1,0 +1,28 @@
+Metadata-Version: 2.0
+Name: enums
+Version: 0.0.2
+Summary: enums: Enumeration types for Python
+Home-page: https://github.com/hosford42/enums
+Author: Aaron Hosford
+Author-email: hosford42@gmail.com
+License: MIT
+Keywords: enum enumeration const constant registry value sharing
+Platform: any
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+
+enums
+=====
+
+*Enumeration types for Python*
+
+The package is available for download under the permissive MIT License.
+
