@@ -1,4 +1,6 @@
 # schemas.py
+from datetime import datetime
+
 from pydantic import BaseModel, constr
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field, PositiveFloat, PositiveInt, conint
@@ -8,17 +10,17 @@ from sqlalchemy import Float
 
 # Schema for a global ingredient
 class Ingredient(BaseModel):
-    id: int
+    id: Optional[int]
     name: constr(min_length=1)
     quantity: conint(ge=0)
 
     class Config:
         from_attributes = True
 
-# Schema for product-specific ingredients
-class IngredientQuantity(BaseModel):
-    name: constr(min_length=1)
-    quantity: conint(gt=0)
+# # Schema for product-specific ingredients
+# class IngredientQuantity(BaseModel):
+#     name: constr(min_length=1)
+#     quantity: conint(gt=0)
 
 # Schema for a creating an ingredient
 class IngredientCreate(BaseModel):
@@ -63,14 +65,28 @@ class ProductUpdate(BaseModel):
     dietary_type: Optional[constr(min_length=1)] = None
     ingredients: Optional[List[IngredientUpdate]] = None
 
-# # Schema for a product, including its specific ingredients
-# class Order(BaseModel):
-#     id = Column(Integer, primary_key=True, index=True)
-#     order_number = Column(String(20), unique=True, index=True)
-#     order_type = Column(String(20), nullable=False)
-#     order_status = Column(String(20), nullable=False)
-#     order_date = Column(DateTime, nullable=False)
-#     ingredients: List[IngredientUpdate]
+class Order(BaseModel):
+    id: int  # The unique order number
+    order_type: str
+    order_status: str
+    order_date: datetime
+    products: List[ProductUpdate]
+
+    class Config:
+        from_attributes = True
+
+# class OrderProduct(BaseModel):
+#     product_id: int
+#     quantity: conint(ge=1)  # Ensure at least one item per product
+
+class CreateOrder(BaseModel):
+    order_type: str = Field(pattern="^(takeout|delivery)$")  # Restrict to "takeout" or "delivery"
+    order_status: str = Field(pattern="^(finished|prepping)$")  # Restrict to "finished" or "prepping"
+    product_ids: List[int]  # List of product IDs
+
+    class Config:
+        from_attributes = True
+
 
 
 # class CustomerBase(BaseModel):

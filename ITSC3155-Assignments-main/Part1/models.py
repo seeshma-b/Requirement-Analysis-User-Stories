@@ -1,5 +1,7 @@
 # models.py
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float, JSON, DateTime, CheckConstraint
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float, JSON, DateTime, CheckConstraint, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -12,6 +14,15 @@ class Ingredient(Base):
     name = Column(String(255), unique=True, index=True, nullable=False)
     quantity = Column(Integer)
 
+order_products = Table(
+    "order_products",
+    Base.metadata,
+    Column("order_id", Integer, ForeignKey("orders.id"), primary_key=True),
+    Column("product_id", Integer, ForeignKey("products.id"), primary_key=True),
+    Column("quantity", Integer, nullable=False, default=1),  # Add quantity
+)
+
+
 class Product(Base):
     __tablename__ = "products"
 
@@ -20,31 +31,18 @@ class Product(Base):
     price = Column(Float, nullable=False)
     promotion = Column(Integer, nullable=False)
     dietary_type = Column(String(255), nullable=False)
+    ingredients = Column(JSON, nullable=False)  # Store ingredients as JSON
 
-    # Store ingredients as JSON
-    ingredients = Column(JSON, nullable=False)  # JSON column to store ingredient details
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_type = Column(Enum("takeout", "delivery", name="order_type_enum"), nullable=False)
+    order_status = Column(Enum("finished", "prepping", name="order_status_enum"), nullable=False)
+    order_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    products = Column(JSON, nullable=False)  # Add the products column as JSON
 
 
-# class Order(Base):
-#     __tablename__ = "orders"
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     order_number = Column(String(20), unique=True, index=True)
-#     order_type = Column(String(20), nullable=False)
-#     order_status = Column(String(20), nullable=False)
-#     order_date = Column(DateTime, nullable=False)
-#
-#     __table_args__ = (
-#         CheckConstraint(
-#             "order_type IN ('takeout', 'delivery')",
-#             name="check_order_type"
-#         ),
-#         CheckConstraint(
-#             "order_status IN ('finished', 'prepping')",
-#             name="check_order_status"
-#         ),
-#     )
-# #
 # class OrderItem(Base):
 #     __tablename__ = "order_items"
 #

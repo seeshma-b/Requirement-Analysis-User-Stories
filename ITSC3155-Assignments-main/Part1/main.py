@@ -1,4 +1,6 @@
 # main.py
+from collections import Counter
+from datetime import datetime
 from typing import List
 
 from fastapi import FastAPI, Depends, HTTPException
@@ -87,7 +89,7 @@ def update_ingredient(ingredient_id: int, ingredient_update: schemas.IngredientU
 @app.delete("/ingredients/{ingredient_id}", response_model=schemas.Ingredient)
 def delete_ingredient(ingredient_id: int, db: Session = Depends(get_db)):
     """
-    Delete an ingredient by its ID and reset IDs.
+    Delete an ingredient by its ID.
     """
     db_ingredient = db.query(models.Ingredient).filter(models.Ingredient.id == ingredient_id).first()
     if not db_ingredient:
@@ -95,12 +97,6 @@ def delete_ingredient(ingredient_id: int, db: Session = Depends(get_db)):
 
     # Delete the ingredient
     db.delete(db_ingredient)
-    db.commit()
-
-    # Reset IDs
-    ingredients = db.query(models.Ingredient).order_by(models.Ingredient.id).all()
-    for index, ingredient in enumerate(ingredients, start=1):
-        ingredient.id = index
     db.commit()
 
     return db_ingredient  # Return the deleted ingredient for confirmation
@@ -186,7 +182,7 @@ def update_product(product_id: int, product_update: schemas.ProductUpdate, db: S
 @app.delete("/products/{product_id}", response_model=schemas.Product)
 def delete_product(product_id: int, db: Session = Depends(get_db)):
     """
-    Delete a Product by its ID and reset IDs.
+    Delete a Product by its ID.
     """
     db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not db_product:
@@ -197,12 +193,342 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     # Reset IDs
-    products = db.query(models.Product).order_by(models.Product.id).all()
-    for index, product in enumerate(products, start=1):
-        product.id = index
-    db.commit()
+    # products = db.query(models.Product).order_by(models.Product.id).all()
+    # for index, product in enumerate(products, start=1):
+    #     product.id = index
+    # db.commit()
 
     return db_product # Return the deleted product for confirmation
+
+
+@app.post("/orders/", response_model=schemas.Order, status_code=status.HTTP_201_CREATED)
+def create_order(order: schemas.CreateOrder, db: Session = Depends(get_db)):
+    try:
+        # Fetch products based on IDs
+        products = db.query(models.Product).filter(models.Product.id.in_(order.product_ids)).all()
+
+        if not products:
+            raise HTTPException(status_code=404, detail="One or more products not found.")
+
+        # Calculate the total required quantities of each ingredient
+        required_ingredients = {}
+
+        for product_id in order.product_ids:
+            product = db.query(models.Product).filter(models.Product.id == product_id).first()
+            for ingredient in product.ingredients:
+                if ingredient["name"] not in required_ingredients:
+                    required_ingredients[ingredient["name"]] = 0
+                required_ingredients[ingredient["name"]] += ingredient["quantity"]
+
+        # Check ingredient availability in the database
+        for ingredient_name, required_quantity in required_ingredients.items():
+            ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == ingredient_name).first()
+            if not ingredient or ingredient.quantity < required_quantity:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Not enough of ingredient '{ingredient_name}' to fulfill the order. "
+                           f"Required: {required_quantity}, Available: {ingredient.quantity if ingredient else 0}"
+                )
+
+        # Prepare JSON for storage in the `products` column
+        products_json = [{"product_id": product.id, "quantity": order.product_ids.count(product.id)} for product in products]
+
+        # Create and store the new order
+        new_order = models.Order(
+            order_type=order.order_type,
+            order_status=order.order_status,
+            order_date=datetime.utcnow(),
+            products=products_json
+        )
+
+        db.add(new_order)
+
+        # Deduct used ingredient quantities
+        for ingredient_name, required_quantity in required_ingredients.items():
+            ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == ingredient_name).first()
+            ingredient.quantity -= required_quantity
+            db.add(ingredient)
+
+        db.commit()
+        db.refresh(new_order)
+
+        # Convert SQLAlchemy products to Pydantic models, duplicating products based on `quantity`
+        full_products = []
+        for item in products_json:
+            product = db.query(models.Product).filter(models.Product.id == item["product_id"]).first()
+            for _ in range(item["quantity"]):  # Duplicate based on quantity
+                full_products.append(
+                    schemas.ProductUpdate(
+                        name=product.name,
+                        price=product.price,
+                        promotion=product.promotion,
+                        dietary_type=product.dietary_type,
+                        ingredients=[
+                            schemas.IngredientUpdate(
+                                name=ingredient["name"],
+                                quantity=ingredient["quantity"]
+                            )
+                            for ingredient in product.ingredients  # Parse each ingredient
+                        ]
+                    )
+                )
+
+        # Return the newly created order with detailed product information
+        return schemas.Order(
+            id=new_order.id,
+            order_type=new_order.order_type,
+            order_status=new_order.order_status,
+            order_date=new_order.order_date,
+            products=full_products
+        )
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error creating order: {str(e)}")
+
+
+@app.get("/orders/", response_model=List[schemas.Order], status_code=status.HTTP_200_OK)
+def get_all_orders(db: Session = Depends(get_db)):
+    """
+    Retrieve a list of all orders with detailed product information.
+    """
+    try:
+        orders = db.query(models.Order).all()
+        if not orders:
+            raise HTTPException(status_code=404, detail="No orders found")
+
+        # Transform orders for the response
+        response_orders = []
+        for order in orders:
+            # Safely handle cases where `products` might be None
+            order_products = order.products or []
+
+            # Transform the JSON products into ProductUpdate schemas
+            full_products = []
+            for item in order_products:
+                product = db.query(models.Product).filter(models.Product.id == item["product_id"]).first()
+                if product:
+                    for _ in range(item["quantity"]):  # Duplicate based on quantity
+                        full_products.append(
+                            schemas.ProductUpdate(
+                                name=product.name,
+                                price=product.price,
+                                promotion=product.promotion,
+                                dietary_type=product.dietary_type,
+                                ingredients=[
+                                    schemas.IngredientUpdate(
+                                        name=ingredient["name"],
+                                        quantity=ingredient["quantity"]
+                                    )
+                                    for ingredient in product.ingredients
+                                ]
+                            )
+                        )
+
+            # Add the transformed order to the response
+            response_orders.append(
+                schemas.Order(
+                    id=order.id,
+                    order_type=order.order_type,
+                    order_status=order.order_status,
+                    order_date=order.order_date,
+                    products=full_products
+                )
+            )
+
+        return response_orders
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving orders: {str(e)}")
+
+@app.get("/orders/{order_id}", response_model=schemas.Order, status_code=status.HTTP_200_OK)
+def get_order(order_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve a single order by its ID.
+    """
+    try:
+        # Fetch the order by ID
+        order = db.query(models.Order).filter(models.Order.id == order_id).first()
+
+        if not order:
+            raise HTTPException(status_code=404, detail=f"Order with ID {order_id} not found")
+
+        # Safely handle cases where `products` might be None
+        order_products = order.products or []
+
+        # Transform the JSON products into ProductUpdate schemas
+        full_products = []
+        for item in order_products:
+            product = db.query(models.Product).filter(models.Product.id == item["product_id"]).first()
+            if product:
+                for _ in range(item["quantity"]):  # Duplicate based on quantity
+                    full_products.append(
+                        schemas.ProductUpdate(
+                            name=product.name,
+                            price=product.price,
+                            promotion=product.promotion,
+                            dietary_type=product.dietary_type,
+                            ingredients=[
+                                schemas.IngredientUpdate(
+                                    name=ingredient["name"],
+                                    quantity=ingredient["quantity"]
+                                )
+                                for ingredient in product.ingredients
+                            ]
+                        )
+                    )
+
+        # Return the transformed order
+        return schemas.Order(
+            id=order.id,
+            order_type=order.order_type,
+            order_status=order.order_status,
+            order_date=order.order_date,
+            products=full_products
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving order: {str(e)}")
+
+
+@app.put("/orders/{order_id}", response_model=schemas.Order, status_code=status.HTTP_200_OK)
+def update_order(order_id: int, updated_order: schemas.CreateOrder, db: Session = Depends(get_db)):
+    """
+    Update an existing order by ID.
+    """
+    try:
+        # Fetch the existing order
+        order = db.query(models.Order).filter(models.Order.id == order_id).first()
+
+        if not order:
+            raise HTTPException(status_code=404, detail=f"Order with ID {order_id} not found")
+
+        # Fetch the products from the database based on updated product IDs
+        products = db.query(models.Product).filter(models.Product.id.in_(updated_order.product_ids)).all()
+
+        if not products:
+            raise HTTPException(status_code=404, detail="One or more products not found")
+
+        # Check ingredient availability for the new products
+        product_counts = {product_id: updated_order.product_ids.count(product_id) for product_id in updated_order.product_ids}
+        for product in products:
+            for ingredient in product.ingredients:
+                db_ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == ingredient["name"]).first()
+                if not db_ingredient or db_ingredient.quantity < (ingredient["quantity"] * product_counts[product.id]):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Insufficient {ingredient['name']} for product {product.name}"
+                    )
+
+        # Prepare the new products JSON
+        updated_products_json = [{"product_id": product.id, "quantity": product_counts[product.id]} for product in products]
+
+        # Update the order's fields
+        order.order_type = updated_order.order_type
+        order.order_status = updated_order.order_status
+        order.products = updated_products_json
+
+        # Update ingredient quantities in the database
+        for product in products:
+            for ingredient in product.ingredients:
+                db_ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == ingredient["name"]).first()
+                if db_ingredient:
+                    db_ingredient.quantity -= ingredient["quantity"] * product_counts[product.id]
+
+        # Commit the updates
+        db.commit()
+        db.refresh(order)
+
+        # Transform the updated order into the response model
+        full_products = []
+        for item in updated_products_json:
+            product = db.query(models.Product).filter(models.Product.id == item["product_id"]).first()
+            for _ in range(item["quantity"]):  # Duplicate based on quantity
+                full_products.append(
+                    schemas.ProductUpdate(
+                        name=product.name,
+                        price=product.price,
+                        promotion=product.promotion,
+                        dietary_type=product.dietary_type,
+                        ingredients=[
+                            schemas.IngredientUpdate(
+                                name=ingredient["name"],
+                                quantity=ingredient["quantity"]
+                            )
+                            for ingredient in product.ingredients
+                        ]
+                    )
+                )
+
+        return schemas.Order(
+            id=order.id,
+            order_type=order.order_type,
+            order_status=order.order_status,
+            order_date=order.order_date,
+            products=full_products
+        )
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error updating order: {str(e)}")
+
+
+@app.delete("/orders/{order_id}", response_model=schemas.Order, status_code=status.HTTP_200_OK)
+def delete_order(order_id: int, db: Session = Depends(get_db)):
+    """
+    Delete an order by its ID and return the deleted order.
+    """
+    try:
+        # Retrieve the order to be deleted
+        order = db.query(models.Order).filter(models.Order.id == order_id).first()
+        if not order:
+            raise HTTPException(status_code=404, detail=f"Order with ID {order_id} not found.")
+
+        # Convert the order's products to Pydantic schema for response
+        full_products = []
+        for product_json in order.products:
+            product = db.query(models.Product).filter(models.Product.id == product_json["product_id"]).first()
+            if product:
+                for _ in range(product_json["quantity"]):  # Duplicate based on quantity
+                    full_products.append(
+                        schemas.ProductUpdate(
+                            name=product.name,
+                            price=product.price,
+                            promotion=product.promotion,
+                            dietary_type=product.dietary_type,
+                            ingredients=[
+                                schemas.IngredientUpdate(
+                                    name=ingredient["name"],
+                                    quantity=ingredient["quantity"]
+                                )
+                                for ingredient in product.ingredients
+                            ]
+                        )
+                    )
+
+        # Prepare the response schema
+        deleted_order = schemas.Order(
+            id=order.id,
+            order_type=order.order_type,
+            order_status=order.order_status,
+            order_date=order.order_date,
+            products=full_products
+        )
+
+        # Delete the order
+        db.delete(order)
+        db.commit()
+
+        return deleted_order
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error deleting order: {str(e)}")
+
+
+
+
+
 #
 # @app.post("/customers/", response_model=schemas.Customer)
 # def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
