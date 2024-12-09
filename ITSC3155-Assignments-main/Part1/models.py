@@ -1,7 +1,8 @@
 # models.py
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float, JSON, DateTime, CheckConstraint, Table
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float, JSON, DateTime, CheckConstraint, Table, Date, \
+    Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -13,15 +14,6 @@ class Ingredient(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), unique=True, index=True, nullable=False)
     quantity = Column(Integer)
-
-order_products = Table(
-    "order_products",
-    Base.metadata,
-    Column("order_id", Integer, ForeignKey("orders.id"), primary_key=True),
-    Column("product_id", Integer, ForeignKey("products.id"), primary_key=True),
-    Column("quantity", Integer, nullable=False, default=1),  # Add quantity
-)
-
 
 class Product(Base):
     __tablename__ = "products"
@@ -38,17 +30,26 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     order_type = Column(Enum("takeout", "delivery", name="order_type_enum"), nullable=False)
-    order_status = Column(Enum("finished", "prepping", name="order_status_enum"), nullable=False)
-    order_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    products = Column(JSON, nullable=False)  # Add the products column as JSON
+    order_status = Column(Enum("finished", "prepping", "paid", name="order_status_enum"), nullable=False)
+    order_date = Column(Date, default=datetime.utcnow().date, nullable=False)
+    products = Column(JSON, default=[])  # Default to an empty list
 
 
-# class OrderItem(Base):
-#     __tablename__ = "order_items"
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     order_id = Column(Integer, ForeignKey("orders.id"))
-#     menu_item_id = Column(Integer, ForeignKey("menu_items.id"))
-#     quantity = Column(Integer)
-#     order = relationship("Order", back_populates="items")
-#     menu_item = relationship("MenuItem")
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(String(255))
+
+
+class PromoCode(Base):
+    __tablename__ = "promo_codes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), unique=True, nullable=False)
+    discount_percentage = Column(Float, nullable=False)
+    expiration_date = Column(Date, nullable=False)
+    is_active = Column(Boolean, default=True)

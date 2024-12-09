@@ -1,7 +1,7 @@
 # schemas.py
-from datetime import datetime
+from datetime import datetime, date
 
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, validator, field_validator
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field, PositiveFloat, PositiveInt, conint
 from sqlalchemy import Float
@@ -16,11 +16,6 @@ class Ingredient(BaseModel):
 
     class Config:
         from_attributes = True
-
-# # Schema for product-specific ingredients
-# class IngredientQuantity(BaseModel):
-#     name: constr(min_length=1)
-#     quantity: conint(gt=0)
 
 # Schema for a creating an ingredient
 class IngredientCreate(BaseModel):
@@ -66,78 +61,76 @@ class ProductUpdate(BaseModel):
     ingredients: Optional[List[IngredientUpdate]] = None
 
 class Order(BaseModel):
-    id: int  # The unique order number
+    id: int
     order_type: str
     order_status: str
-    order_date: datetime
+    order_date: date  # Use `date` for the field
     products: List[ProductUpdate]
+
+    @field_validator("order_date", mode="before")
+    def validate_order_date(cls, value):
+        if isinstance(value, str):
+            try:
+                return date.fromisoformat(value)
+            except ValueError:
+                raise ValueError("Invalid date format. Use 'YYYY-MM-DD'.")
+        elif isinstance(value, date):
+            return value
+        else:
+            raise ValueError("Invalid date type. Must be a date or ISO8601 string.")
 
     class Config:
         from_attributes = True
 
-# class OrderProduct(BaseModel):
-#     product_id: int
-#     quantity: conint(ge=1)  # Ensure at least one item per product
-
 class CreateOrder(BaseModel):
     order_type: str = Field(pattern="^(takeout|delivery)$")  # Restrict to "takeout" or "delivery"
-    order_status: str = Field(pattern="^(finished|prepping)$")  # Restrict to "finished" or "prepping"
+    order_status: str = Field(pattern="^(finished|prepping|payed)$")  # Restrict to "finished", "prepping" or "paid"
     product_ids: List[int]  # List of product IDs
 
     class Config:
         from_attributes = True
 
+class Review(BaseModel):
+    id: int
+    product_id: int
+    title: str
+    description: str
+
+    class Config:
+        from_attributes = True
+
+class ReviewUpdate(BaseModel):
+    product_id: conint(ge=1)
+    title: Optional[constr(min_length=1)] = None
+    description: Optional[constr(min_length=1)] = None
+
+    class Config:
+        from_attributes = True
+
+class CreateReview(BaseModel):
+    product_id: conint(ge=1)
+    title: constr(min_length=1)
+    description: constr(min_length=1)
+
+    class Config:
+        from_attributes = True
+
+class PromoCodeBase(BaseModel):
+    code: str
+    discount_percentage: float
+    expiration_date: date
+    is_active: bool = True
+
+    class Config:
+        from_attributes = True
 
 
-# class CustomerBase(BaseModel):
-#     name: str
-#     phone: str
-#     address: str
-#
-# class Customer(CustomerBase):
-#     id: int
-#
-#     class Config:
-#         from_attributes = True
-#
-# class MenuItemBase(BaseModel):
-#     name: str
-#     ingredients: str
-#     price: float
-#     calories: int
-#     category: str
-#
-# class MenuItem(MenuItemBase):
-#     id: int
-#
-#     class Config:
-#         from_attributes = True
-#
-# class OrderBase(BaseModel):
-#     order_number: str
-#     customer_id: int
-#     order_type: str
-#     order_status: str
-#
-# class OrderCreate(OrderBase):
-#     pass
-#
-# class Order(OrderBase):
-#     id: int
-#
-#     class Config:
-#         from_attributes = True
-#
-# class OrderItemBase(BaseModel):
-#     order_id: int
-#     menu_item_id: int
-#     quantity: int
-#
-# class OrderItemCreate(OrderItemBase):
-#     pass
-#
-# class OrderItem(OrderItemBase):
-#     id: int
-#
-#     class Config:
-#         from_attributes = True
+class CreatePromoCode(PromoCodeBase):
+    pass
+
+
+class PromoCodeResponse(PromoCodeBase):
+    id: int
+
+class OrderWithDiscount(Order):
+    discounted_total: float
